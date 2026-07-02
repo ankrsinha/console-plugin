@@ -120,16 +120,14 @@ const CheckboxFilterInput: FC<{
             onClick={handleToggleClick}
             isExpanded={isOpen}
             isFullWidth
-            icon={config.singleSelect ? undefined : <FilterIcon />}
+            icon={<FilterIcon />}
             badge={
-              !config.singleSelect && selected.length > 0 ? (
+              selected.length > 0 ? (
                 <Badge isRead>{selected.length}</Badge>
               ) : undefined
             }
           >
-            {config.singleSelect && selected.length > 0
-              ? config.options.find((o) => o.value === selected[0])?.label
-              : config.placeholder || config.title}
+            {config.placeholder}
           </MenuToggle>
         }
         triggerRef={toggleRef}

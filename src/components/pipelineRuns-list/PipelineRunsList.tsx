@@ -112,6 +112,7 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
       {
         id: 'timeRange',
         title: t('Time Range'),
+        placeholder: t('Filter by time range'),
         singleSelect: true,
         defaultValues: [],
         options: Object.entries(timeRangeOptions).map(([key, label]) => ({
