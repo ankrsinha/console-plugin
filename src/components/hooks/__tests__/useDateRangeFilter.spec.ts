@@ -45,11 +45,12 @@ describe('useDateRangeFilter', () => {
     );
   });
 
-  it('should default to 1 day when useUserPreference returns undefined', () => {
+  it('should default to 0 (no filter) when useUserPreference returns undefined', () => {
     useUserPreferenceMock.mockReturnValue([undefined, setTimespanMock]);
     const { result } = testHook(() => useDateRangeFilter('pipelineRun'));
-    expect(result.current.timespan).toBe(ONE_DAY_MS);
-    expect(result.current.dateFilterCEL).not.toBe('');
+    expect(result.current.timespan).toBe(0);
+    expect(result.current.dateFilterCEL).toBe('');
+    expect(result.current.startDate).toBeUndefined();
   });
 
   it('should expose setTimespan from the preference hook', () => {
@@ -69,7 +70,7 @@ describe('useDateRangeFilter', () => {
     expect(result.current.timespan).toBe(ONE_DAY_MS);
     expect(useUserPreferenceMock).toHaveBeenCalledWith(
       'plugin__pipelines-console-plugin.dateRangeFilter.taskRun',
-      ONE_DAY_MS,
+      0,
       true,
     );
   });

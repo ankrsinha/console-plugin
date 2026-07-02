@@ -66,11 +66,10 @@ const ONE_DAY_MS = 86400000;
 const makeDateRange = (
   overrides?: Partial<DateRangeFilterResult>,
 ): DateRangeFilterResult => ({
-  timespan: ONE_DAY_MS,
+  timespan: 0,
   setTimespan: jest.fn(),
-  startDate: Date.now() - ONE_DAY_MS,
-  dateFilterCEL:
-    'data.status.startTime > timestamp("2026-06-14T00:00:00.000Z")',
+  startDate: undefined,
+  dateFilterCEL: '',
   isTektonResultEnabled: true,
   preferenceLoaded: true,
   ...overrides,
@@ -122,7 +121,7 @@ describe('PipelineRunsList', () => {
       undefined,
     ]);
     useDateRangeFilterMock.mockReturnValue(
-      makeDateRange({ startDate: now - ONE_DAY_MS }),
+      makeDateRange({ timespan: ONE_DAY_MS, startDate: now - ONE_DAY_MS }),
     );
     render(<PipelineRunsList namespace="test-ns" />);
     const dataArg = consoleDataViewMock.mock.calls[0][0].data;
@@ -138,7 +137,7 @@ describe('PipelineRunsList', () => {
     const pending = makePipelineRun('pending');
     useGetPipelineRunsMock.mockReturnValue([[pending], true, true, undefined]);
     useDateRangeFilterMock.mockReturnValue(
-      makeDateRange({ startDate: now - ONE_DAY_MS }),
+      makeDateRange({ timespan: ONE_DAY_MS, startDate: now - ONE_DAY_MS }),
     );
     render(<PipelineRunsList namespace="test-ns" />);
     const dataArg = consoleDataViewMock.mock.calls[0][0].data;
@@ -152,7 +151,6 @@ describe('PipelineRunsList', () => {
   it('should include time range as a singleSelect checkbox filter', () => {
     render(<PipelineRunsList namespace="test-ns" />);
     expect(screen.getByTestId('filter-timeRange')).toBeTruthy();
-    expect(screen.getByText('Last day')).toBeTruthy();
   });
 
   it('should hide filters when hideTextFilter is true', () => {
