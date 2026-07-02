@@ -7,7 +7,7 @@ import {
   FLAG_PIPELINE_TEKTON_RESULT_INSTALLED,
   USER_PREFERENCE_PREFIX,
 } from '../../consts';
-import { parsePrometheusDuration } from '../pipelines-overview/dateTime';
+
 
 export type DateRangeFilterResult = {
   timespan: number;
@@ -26,11 +26,11 @@ export const useDateRangeFilter = (
   const isTektonResultEnabled = useFlag(FLAG_PIPELINE_TEKTON_RESULT_INSTALLED);
   const [timespan, setTimespan, preferenceLoaded] = useUserPreference<number>(
     `${USER_PREFERENCE_PREFIX}.dateRangeFilter.${pageType}`,
-    parsePrometheusDuration('1d'),
+    0,
     true,
   );
 
-  const ts = timespan ?? parsePrometheusDuration('1d');
+  const ts = timespan ?? 0;
 
   const startDate = useMemo(() => {
     if (!ts) return undefined;

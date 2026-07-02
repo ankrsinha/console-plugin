@@ -96,12 +96,15 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
     },
   });
 
-  const currentKey = formatPrometheusDuration(timespan);
+  const currentKey = timespan ? formatPrometheusDuration(timespan) : '';
   const timeRangeOptions = isTektonResultEnabled
     ? TimeRangeOptions()
     : TimeRangeOptionsK8s();
 
-  const filterValues = { ...baseFilterValues, timeRange: [currentKey] };
+  const filterValues = {
+    ...baseFilterValues,
+    timeRange: currentKey ? [currentKey] : [],
+  };
 
   const checkboxFilters = useMemo(
     () => [
@@ -110,7 +113,7 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
         id: 'timeRange',
         title: t('Time Range'),
         singleSelect: true,
-        defaultValues: [currentKey],
+        defaultValues: [],
         options: Object.entries(timeRangeOptions).map(([key, label]) => ({
           value: key,
           label,
@@ -118,13 +121,14 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
         })),
       },
     ],
-    [updatedCheckboxFilters, t, currentKey, timeRangeOptions],
+    [updatedCheckboxFilters, t, timeRangeOptions],
   );
 
   const onFilterChange = useCallback(
     (key: string, value: string | string[]) => {
       if (key === 'timeRange') {
-        setTimespan(parsePrometheusDuration((value as string[])[0] || '1d'));
+        const selected = (value as string[])[0];
+        setTimespan(selected ? parsePrometheusDuration(selected) : 0);
         return;
       }
       baseOnFilterChange(key, value);
@@ -134,7 +138,7 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
 
   const onClearAll = useCallback(() => {
     baseOnClearAll();
-    setTimespan(parsePrometheusDuration('1d'));
+    setTimespan(0);
   }, [baseOnClearAll, setTimespan]);
 
   const loaded = useMemo(() => {
