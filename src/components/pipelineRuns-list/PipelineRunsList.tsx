@@ -11,11 +11,8 @@ import { ConsoleDataView } from '@openshift-console/dynamic-plugin-sdk-internal'
 import { useTranslation } from 'react-i18next';
 import { useDataViewFilter } from '../hooks/useDataViewFilter';
 import { DataViewFilterToolbar } from '../common/DataViewFilterToolbar';
-import { useDateRangeFilter } from '../hooks/useDateRangeFilter';
-import {
-  formatPrometheusDuration,
-  parsePrometheusDuration,
-} from '../pipelines-overview/dateTime';
+import { useDateRangeFilter, parseDuration } from '../hooks/useDateRangeFilter';
+import { formatPrometheusDuration } from '../pipelines-overview/dateTime';
 import {
   TimeRangeOptions,
   TimeRangeOptionsK8s,
@@ -109,27 +106,31 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
   const checkboxFilters = useMemo(
     () => [
       ...updatedCheckboxFilters,
-      {
-        id: 'timeRange',
-        title: t('Time Range'),
-        placeholder: t('Filter by time range'),
-        singleSelect: true,
-        defaultValues: [],
-        options: Object.entries(timeRangeOptions).map(([key, label]) => ({
-          value: key,
-          label,
-          count: 0,
-        })),
-      },
+      ...(preferenceLoaded
+        ? [
+            {
+              id: 'timeRange',
+              title: t('Time Range'),
+              placeholder: t('Filter by time range'),
+              singleSelect: true,
+              defaultValues: [],
+              options: Object.entries(timeRangeOptions).map(([key, label]) => ({
+                value: key,
+                label,
+                count: 0,
+              })),
+            },
+          ]
+        : []),
     ],
-    [updatedCheckboxFilters, t, timeRangeOptions],
+    [updatedCheckboxFilters, t, currentKey, timeRangeOptions, preferenceLoaded],
   );
 
   const onFilterChange = useCallback(
     (key: string, value: string | string[]) => {
       if (key === 'timeRange') {
         const selected = (value as string[])[0];
-        setTimespan(selected ? parsePrometheusDuration(selected) : 0);
+        setTimespan(selected ? parseDuration(selected) : 0);
         return;
       }
       baseOnFilterChange(key, value);
@@ -143,7 +144,6 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
   }, [baseOnClearAll, setTimespan]);
 
   const loaded = useMemo(() => {
-    if (!preferenceLoaded) return false;
     const selectedSources = baseFilterValues?.dataSource as
       | string[]
       | undefined;
@@ -154,11 +154,11 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
     if (bothOrNone) return k8sLoaded && trLoaded;
     if (selectedSources.includes('cluster-data')) return k8sLoaded;
     return trLoaded;
-  }, [preferenceLoaded, k8sLoaded, trLoaded, baseFilterValues?.dataSource]);
+  }, [k8sLoaded, trLoaded, baseFilterValues?.dataSource]);
 
   return (
     <ListPageBody>
-      {!hideTextFilter && preferenceLoaded && (
+      {!hideTextFilter && (
         <DataViewFilterToolbar
           filterValues={filterValues}
           onFilterChange={onFilterChange}

@@ -3,7 +3,7 @@ import {
   useUserPreference,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { testHook } from '../../../test-data/utils/hooks-utils';
-import { useDateRangeFilter } from '../useDateRangeFilter';
+import { useDateRangeFilter, parseDuration } from '../useDateRangeFilter';
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useFlag: jest.fn(),
@@ -30,12 +30,12 @@ describe('useDateRangeFilter', () => {
     expect(result.current.timespan).toBe(ONE_DAY_MS);
   });
 
-  it('should compute startDate as Date.now() - timespan', () => {
-    const now = Date.now();
+  it('should compute startDate from midnight minus timespan', () => {
     const { result } = testHook(() => useDateRangeFilter('pipelineRun'));
-    const diff = now - result.current.timespan;
-    expect(result.current.startDate).toBeGreaterThanOrEqual(diff - 100);
-    expect(result.current.startDate).toBeLessThanOrEqual(diff + 100);
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    const expected = midnight.getTime() - ONE_DAY_MS;
+    expect(result.current.startDate).toBe(expected);
   });
 
   it('should generate a valid CEL expression', () => {
@@ -73,5 +73,26 @@ describe('useDateRangeFilter', () => {
       0,
       true,
     );
+  });
+});
+
+describe('parseDuration', () => {
+  it('should parse single unit durations', () => {
+    expect(parseDuration('1d')).toBe(ONE_DAY_MS);
+    expect(parseDuration('1w')).toBe(ONE_WEEK_MS);
+    expect(parseDuration('2h')).toBe(7_200_000);
+    expect(parseDuration('30m')).toBe(1_800_000);
+    expect(parseDuration('10s')).toBe(10_000);
+  });
+
+  it('should parse multi-unit durations', () => {
+    expect(parseDuration('4w 2d')).toBe(4 * ONE_WEEK_MS + 2 * ONE_DAY_MS);
+    expect(parseDuration('1d 12h')).toBe(ONE_DAY_MS + 12 * 3_600_000);
+  });
+
+  it('should return 0 for invalid input', () => {
+    expect(parseDuration('')).toBe(0);
+    expect(parseDuration('abc')).toBe(0);
+    expect(parseDuration('10x')).toBe(0);
   });
 });
