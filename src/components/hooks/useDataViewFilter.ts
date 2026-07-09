@@ -25,12 +25,21 @@ import {
   pipelineStatusFilter,
 } from '../utils/pipeline-filter-reducer';
 import { ListFilterId, ListFilterLabels } from '../utils/pipeline-utils';
+import {
+  NO_DATE_RANGE_FILTER,
+  parseDurationForDateRangeFiltering,
+  useDateRangeFilter,
+} from './useDateRangeFilter';
+import { formatPrometheusDuration } from '../pipelines-overview/dateTime';
+import { TimeRangeOptions } from '../pipelines-overview/utils';
 
 export type ResourceType =
   | 'Pipeline'
   | 'PipelineRun'
   | 'TaskRun'
   | 'ApprovalTask';
+
+const SINGLE_SELECT_NO_COUNT = 0;
 
 export interface DataViewFilterOptions<T extends K8sResourceCommon> {
   getName?: (obj: T) => string;
@@ -150,6 +159,17 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
   const allStatusIds = useMemo(() => Object.values(ListFilterId), []);
   const resetFilterState = { name: '', labels: [] };
 
+  const {
+    startDate,
+    timespan,
+    setTimespanDateFilter,
+    dateFilterCEL,
+    preferenceLoaded,
+  } = useDateRangeFilter(resourceType ?? 'PipelineRun');
+
+  const timeRangeOptions = TimeRangeOptions();
+  const currentKey = timespan ? formatPrometheusDuration(timespan) : '';
+
   const checkboxFilters = useMemo<CheckboxFilterConfig[]>(() => {
     if (!resourceType) return [];
     const config = RESOURCE_FILTER_CONFIG[resourceType];
@@ -180,6 +200,20 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
         ],
       });
     }
+    if (preferenceLoaded) {
+      filters.push({
+        id: 'timeRange',
+        title: t('Time Range'),
+        placeholder: t('Filter by time range'),
+        singleSelect: true,
+        defaultValues: [],
+        options: Object.entries(timeRangeOptions).map(([key, label]) => ({
+          value: key,
+          label,
+          count: SINGLE_SELECT_NO_COUNT,
+        })),
+      });
+    }
     return filters;
   }, [
     resourceType,
@@ -187,6 +221,8 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
     t,
     defaultStatusValues,
     defaultDataSourceValues,
+    preferenceLoaded,
+    timeRangeOptions,
   ]);
 
   const config = resourceType
@@ -245,16 +281,27 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
 
   const onFilterChange = useCallback(
     (key: string, value: string | string[]) => {
+      if (key === 'timeRange') {
+        const selected = (value as string[])[0];
+        setTimespanDateFilter(
+          selected
+            ? parseDurationForDateRangeFiltering(selected)
+            : NO_DATE_RANGE_FILTER,
+        );
+        resetPage();
+        return;
+      }
       setFilterState((prev) => ({ ...prev, [key]: value }));
       resetPage();
     },
-    [resetPage],
+    [resetPage, setTimespanDateFilter],
   );
 
   const onClearAll = useCallback(() => {
     setFilterState(resetFilterState);
+    setTimespanDateFilter(NO_DATE_RANGE_FILTER);
     resetPage();
-  }, [resetPage]);
+  }, [resetPage, setTimespanDateFilter]);
 
   const labelSuggestions = useMemo(() => {
     if (!data) return [];
@@ -272,8 +319,12 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
   }, [data, getLabels]);
 
   const filterValues = useMemo<FilterValues>(
-    () => ({ ...filterState, labelSuggestions }),
-    [filterState, labelSuggestions],
+    () => ({
+      ...filterState,
+      labelSuggestions,
+      ...(resourceType ? { timeRange: currentKey ? [currentKey] : [] } : {}),
+    }),
+    [filterState, labelSuggestions, resourceType, currentKey],
   );
 
   const passesNameAndLabelFilters = useCallback(
@@ -314,12 +365,31 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
     [resourceType, checkboxFilters, filterState, matchesCheckboxFilter],
   );
 
+  const passesDateRangeFilter = useCallback(
+    (obj: T): boolean => {
+      if (!startDate) return true;
+      if (isPipelineRunLoadedFromTektonResults(obj)) return true;
+      const pipelineRunStartTime = (obj as any).status?.startTime;
+      if (!pipelineRunStartTime) return true;
+      return new Date(pipelineRunStartTime).getTime() > startDate;
+    },
+    [startDate],
+  );
+
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter(
-      (obj) => passesNameAndLabelFilters(obj) && passesCheckboxFilter(obj),
+      (obj) =>
+        passesNameAndLabelFilters(obj) &&
+        passesCheckboxFilter(obj) &&
+        passesDateRangeFilter(obj),
     );
-  }, [data, passesNameAndLabelFilters, passesCheckboxFilter]);
+  }, [
+    data,
+    passesNameAndLabelFilters,
+    passesCheckboxFilter,
+    passesDateRangeFilter,
+  ]);
 
   const updatedCheckboxFilters = useMemo(() => {
     if (!resourceType || !data) return checkboxFilters;
@@ -354,5 +424,7 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
     onClearAll,
     filteredData,
     updatedCheckboxFilters,
+    dateFilterCEL,
+    preferenceLoaded,
   };
 };

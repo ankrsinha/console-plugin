@@ -40,7 +40,7 @@ export const getPipelineListDataViewRows: GetDataViewRows<
   PipelineWithLatest,
   undefined
 > = (data, columns) => {
-  return data.map(({ obj, rowData }) => {
+  return data.map(({ obj }) => {
     const rowCells = {
       [tableColumnInfo[0].id]: {
         cell: (
