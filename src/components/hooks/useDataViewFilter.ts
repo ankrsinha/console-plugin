@@ -163,7 +163,6 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
     resetPreference: resetDatasourcePreference,
   } = useDatasourcePreference(resourceType);
   const allStatusIds = useMemo(() => Object.values(ListFilterId), []);
-  const resetFilterState = { name: '', labels: [] };
 
   const {
     startDate,
@@ -273,7 +272,14 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
     return values;
   }, [checkboxFilters]);
 
-  const [filterState, setFilterState] = useState<FilterValues>(initialValues);
+  const [filterOverrides, setFilterOverrides] = useState<
+    Partial<FilterValues>
+  >({});
+
+  const filterState = useMemo<FilterValues>(
+    () => ({ ...initialValues, ...filterOverrides }),
+    [initialValues, filterOverrides],
+  );
   const [, setSearchParams] = useSearchParams();
 
   const resetPage = useCallback(() => {
@@ -296,7 +302,7 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
         resetPage();
         return;
       }
-      setFilterState((prev) => ({ ...prev, [key]: value }));
+      setFilterOverrides((prev) => ({ ...prev, [key]: value }));
       if (key === 'dataSource') {
         setDatasourcePreference(Array.isArray(value) ? value : [value]);
       }
@@ -306,7 +312,7 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
   );
 
   const onClearAll = useCallback(() => {
-    setFilterState(resetFilterState);
+    setFilterOverrides({ name: '', labels: [] });
     setTimespanDateFilter(NO_DATE_RANGE_FILTER);
     resetDatasourcePreference();
     resetPage();
