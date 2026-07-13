@@ -157,11 +157,18 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
   const { t } = useTranslation('plugin__pipelines-console-plugin');
   const isTektonResultEnabled = useFlag(FLAG_PIPELINE_TEKTON_RESULT_INSTALLED);
 
+  const pageType =
+    resourceType === 'PipelineRun'
+      ? 'pipelineRun'
+      : resourceType === 'TaskRun'
+        ? 'taskRun'
+        : resourceType?.toLowerCase() ?? 'pipelineRun';
+
   const {
     preference: datasourcePreference,
     setPreference: setDatasourcePreference,
     resetPreference: resetDatasourcePreference,
-  } = useDatasourcePreference(resourceType);
+  } = useDatasourcePreference(pageType);
   const allStatusIds = useMemo(() => Object.values(ListFilterId), []);
 
   const {
@@ -170,7 +177,7 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
     setTimespanDateFilter,
     dateFilterCEL,
     preferenceLoaded,
-  } = useDateRangeFilter(resourceType ?? 'PipelineRun');
+  } = useDateRangeFilter(pageType);
 
   const timeRangeOptions = TimeRangeOptions();
   const currentKey = timespan ? formatPrometheusDuration(timespan) : '';

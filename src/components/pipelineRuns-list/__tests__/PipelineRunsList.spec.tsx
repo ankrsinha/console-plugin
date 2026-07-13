@@ -30,7 +30,7 @@ jest.mock('../../hooks/useDataViewFilter', () => ({
   useDataViewFilter: ({ data }) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { useDateRangeFilter } = require('../../hooks/useDateRangeFilter');
-    const { startDate, preferenceLoaded } = useDateRangeFilter('PipelineRun');
+    const { startDate, preferenceLoaded } = useDateRangeFilter('pipelineRun');
     const filtered = startDate
       ? data.filter((obj) => {
           const st = obj.status?.startTime;

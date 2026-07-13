@@ -25,7 +25,7 @@ describe('useDatasourcePreference', () => {
 
   it('should return the persisted preference', () => {
     const { result } = testHook(() =>
-      useDatasourcePreference('PipelineRun'),
+      useDatasourcePreference('pipelineRun'),
     );
     expect(result.current.preference).toEqual(['cluster-data']);
     expect(result.current.loaded).toBe(true);
@@ -38,14 +38,14 @@ describe('useDatasourcePreference', () => {
       true,
     ]);
     const { result } = testHook(() =>
-      useDatasourcePreference('PipelineRun'),
+      useDatasourcePreference('pipelineRun'),
     );
     expect(result.current.preference).toEqual(DEFAULT_DATASOURCE_VALUES);
   });
 
   it('should persist value via setPreference', () => {
     const { result } = testHook(() =>
-      useDatasourcePreference('PipelineRun'),
+      useDatasourcePreference('pipelineRun'),
     );
     result.current.setPreference(['archived-data']);
     expect(setPreferenceMock).toHaveBeenCalledWith(['archived-data']);
@@ -53,16 +53,16 @@ describe('useDatasourcePreference', () => {
 
   it('should reset preference to default', () => {
     const { result } = testHook(() =>
-      useDatasourcePreference('PipelineRun'),
+      useDatasourcePreference('pipelineRun'),
     );
     result.current.resetPreference();
     expect(setPreferenceMock).toHaveBeenCalledWith(DEFAULT_DATASOURCE_VALUES);
   });
 
-  it('should use the correct preference key for PipelineRun', () => {
-    testHook(() => useDatasourcePreference('PipelineRun'));
+  it('should use the correct preference key for pipelineRun', () => {
+    testHook(() => useDatasourcePreference('pipelineRun'));
     expect(useUserPreferenceMock).toHaveBeenCalledWith(
-      'plugin__pipelines-console-plugin.dataSource.PipelineRun',
+      'plugin__pipelines-console-plugin.dataSource.pipelineRun',
       DEFAULT_DATASOURCE_VALUES,
       true,
     );

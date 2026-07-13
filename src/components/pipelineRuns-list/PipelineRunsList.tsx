@@ -49,7 +49,7 @@ const PipelineRunsList: FC<PipelineRunsListProps> = ({
     }
   }, []);
 
-  const { dateFilterCEL } = useDateRangeFilter('PipelineRun');
+  const { dateFilterCEL } = useDateRangeFilter('pipelineRun');
 
   const [pipelineRuns, k8sLoaded, trLoaded, pipelineRunsLoadError] =
     useGetPipelineRuns(namespace, {

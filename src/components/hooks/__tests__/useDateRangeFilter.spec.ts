@@ -26,12 +26,12 @@ describe('useDateRangeFilter', () => {
   });
 
   it('should return timespan from user preference', () => {
-    const { result } = testHook(() => useDateRangeFilter('PipelineRun'));
+    const { result } = testHook(() => useDateRangeFilter('pipelineRun'));
     expect(result.current.timespan).toBe(ONE_DAY_MS);
   });
 
   it('should compute startDate from midnight minus timespan', () => {
-    const { result } = testHook(() => useDateRangeFilter('PipelineRun'));
+    const { result } = testHook(() => useDateRangeFilter('pipelineRun'));
     const midnight = new Date();
     midnight.setHours(0, 0, 0, 0);
     const expected = midnight.getTime() - ONE_DAY_MS;
@@ -39,7 +39,7 @@ describe('useDateRangeFilter', () => {
   });
 
   it('should generate a valid CEL expression', () => {
-    const { result } = testHook(() => useDateRangeFilter('PipelineRun'));
+    const { result } = testHook(() => useDateRangeFilter('pipelineRun'));
     expect(result.current.dateFilterCEL).toMatch(
       /^data\.status\.startTime > timestamp\(".*"\)$/,
     );
@@ -50,23 +50,23 @@ describe('useDateRangeFilter', () => {
       undefined,
       setTimespanDateFilterMock,
     ]);
-    const { result } = testHook(() => useDateRangeFilter('PipelineRun'));
+    const { result } = testHook(() => useDateRangeFilter('pipelineRun'));
     expect(result.current.timespan).toBe(0);
     expect(result.current.dateFilterCEL).toBe('');
     expect(result.current.startDate).toBeUndefined();
   });
 
   it('should expose setTimespanDateFilter from the preference hook', () => {
-    const { result } = testHook(() => useDateRangeFilter('PipelineRun'));
+    const { result } = testHook(() => useDateRangeFilter('pipelineRun'));
     result.current.setTimespanDateFilter(ONE_WEEK_MS);
     expect(setTimespanDateFilterMock).toHaveBeenCalledWith(ONE_WEEK_MS);
   });
 
-  it('should use a different preference key for TaskRun', () => {
-    const { result } = testHook(() => useDateRangeFilter('TaskRun'));
+  it('should use a different preference key for taskRun', () => {
+    const { result } = testHook(() => useDateRangeFilter('taskRun'));
     expect(result.current.timespan).toBe(ONE_DAY_MS);
     expect(useUserPreferenceMock).toHaveBeenCalledWith(
-      'plugin__pipelines-console-plugin.dateRangeFilter.TaskRun',
+      'plugin__pipelines-console-plugin.dateRangeFilter.taskRun',
       0,
       true,
     );
