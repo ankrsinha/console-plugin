@@ -309,10 +309,12 @@ export const useDataViewFilter = <T extends K8sResourceCommon>({
         resetPage();
         return;
       }
-      setFilterOverrides((prev) => ({ ...prev, [key]: value }));
       if (key === 'dataSource') {
         setDatasourcePreference(Array.isArray(value) ? value : [value]);
+        resetPage();
+        return;
       }
+      setFilterOverrides((prev) => ({ ...prev, [key]: value }));
       resetPage();
     },
     [resetPage, setTimespanDateFilter, setDatasourcePreference],
